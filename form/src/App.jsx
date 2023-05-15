@@ -7,6 +7,7 @@ import { estadosBrasileiroSigla } from "./estados";
 const valoresIniciaisDoFormulario = {
   nomeCompleto: "",
   email: "",
+  estado: ""
 };
 function App() {
   const [formValores, setFormValores] = useState(valoresIniciaisDoFormulario);
@@ -21,7 +22,6 @@ function App() {
   const escutandoValorDosCampos = (event) => {
     const { name, value } = event.target;
     setFormValores({ ...formValores, [name]: value });
-    console.log(formValores);
   };
 
   const estadosBrasileiroOpcoes = sortBy(estadosBrasileiroSigla, 'nome');
@@ -64,8 +64,8 @@ function App() {
             <div className="columns">
               <div className="column">
                 <div className="select">
-                  <select>
-                    <option>Escolha o Estado</option>
+                  <select name="estado" onChange={escutandoValorDosCampos} value={formValores.estado}>
+                    <option value="">Escolha o Estado</option>
                     {estadosBrasileiroOpcoes.map((estado, estadoIndex) => (
                       <option value={estado.nome} key={estadoIndex}>{estado.nome}</option>
                     ))}
