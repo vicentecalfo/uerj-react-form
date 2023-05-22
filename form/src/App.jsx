@@ -1,16 +1,39 @@
 import "bulma/css/bulma.min.css";
 import "./App.css";
-import { useState } from "react";
-import sortBy from 'underscore/modules/sortBy.js'
-import { estadosBrasileiroSigla } from "./estados";
+import { useState, useEffect } from "react";
+// import sortBy from "underscore/modules/sortBy.js";
+// import findWhere from "underscore/modules/findWhere.js";
+// import where from "underscore/modules/where.js";
+//import { estadosBrasileiroSigla } from "./estados";
+import estados from "./estados.json";
+import municipios from "./municipios.json";
 
 const valoresIniciaisDoFormulario = {
   nomeCompleto: "",
   email: "",
-  estado: ""
+  estado: "",
+  municipio: "",
 };
 function App() {
+  const buscarMunicipiosFiltradosPorEstado = () => {
+    const filtrados = municipios.filter(
+      (item) =>
+        item.microrregiao.mesorregiao.UF.id === Number(formValores.estado)
+    );
+    return filtrados;
+  };
+  const botaoDesabilitado = () => {
+    const campos = Object.keys(formValores);
+    const camposPreenchidos = campos.filter((campo) => formValores[campo] !== "");
+    return campos.length > camposPreenchidos.length;
+  };
   const [formValores, setFormValores] = useState(valoresIniciaisDoFormulario);
+  const [municipioFiltrado, setMunicipioFiltrado] = useState(
+    buscarMunicipiosFiltradosPorEstado()
+  );
+  const [desabilitaBotao, setDesabilitaBotao] = useState(
+    botaoDesabilitado()
+  );
 
   const enviarFormulario = (event) => {
     event.preventDefault();
@@ -19,12 +42,22 @@ function App() {
     console.log(formData);
   };
 
+  const limparFormulario = (event) => {
+    event.preventDefault();
+    setFormValores({ ...valoresIniciaisDoFormulario });
+  };
+
   const escutandoValorDosCampos = (event) => {
     const { name, value } = event.target;
     setFormValores({ ...formValores, [name]: value });
   };
 
-  const estadosBrasileiroOpcoes = sortBy(estadosBrasileiroSigla, 'nome');
+  useEffect(() => {
+    setMunicipioFiltrado(buscarMunicipiosFiltradosPorEstado());
+    setDesabilitaBotao(botaoDesabilitado());
+  }, [formValores]);
+
+  //const estadosBrasileiroOpcoes = sortBy(estadosBrasileiroSigla, 'nome');
 
   return (
     <>
@@ -64,10 +97,36 @@ function App() {
             <div className="columns">
               <div className="column">
                 <div className="select">
-                  <select name="estado" onChange={escutandoValorDosCampos} value={formValores.estado}>
+                  <select
+                    name="estado"
+                    onChange={escutandoValorDosCampos}
+                    value={formValores.estado}
+                  >
                     <option value="">Escolha o Estado</option>
-                    {estadosBrasileiroOpcoes.map((estado, estadoIndex) => (
-                      <option value={estado.nome} key={estadoIndex}>{estado.nome}</option>
+                    {estados.map((estado) => (
+                      <option value={estado.id} key={estado.id}>
+                        {estado.nome} ({estado.sigla})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="column">
+                <div className="select">
+                  <select
+                    name="municipio"
+                    onChange={escutandoValorDosCampos}
+                    value={formValores.municipio}
+                    disabled={!formValores?.estado}
+                  >
+                    <option value="">
+                      Escolha o Município ({municipioFiltrado.length})
+                    </option>
+                    {municipioFiltrado.map((municipio) => (
+                      <option value={municipio.id} key={municipio.id}>
+                        {municipio.nome}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -75,8 +134,21 @@ function App() {
             </div>
             <div className="columns">
               <div className="column">
-                <button className="button" type="submit">
+                <button
+                  className="button"
+                  type="submit"
+                  disabled={desabilitaBotao}
+                >
                   Enviar
+                </button>
+              </div>
+              <div className="column">
+                <button
+                  className="button"
+                  type="reset"
+                  onClick={limparFormulario}
+                >
+                  Limpar Formulário
                 </button>
               </div>
             </div>
