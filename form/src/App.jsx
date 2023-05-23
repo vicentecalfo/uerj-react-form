@@ -70,29 +70,41 @@ function App() {
   };
 
   useEffect(() => {
-    bucarEstadosFiltradosPorRegiao().then((estados) =>{
-      setEstadoFiltrado(estados)
+    bucarEstadosFiltradosPorRegiao().then((estados) => {
+      setEstadoFiltrado(estados);
       setMunicipioFiltrado([]);
-     });
+    });
   }, [formValores.regiao]);
 
   useEffect(() => {
     buscarMunicipiosFiltradosPorEstado().then((municipios) =>
-    setMunicipioFiltrado(municipios)
+      setMunicipioFiltrado(municipios)
     );
   }, [formValores.estado]);
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const response = await fetch(
+  //       "https://servicodados.ibge.gov.br/api/v1/localidades/regioes?orderBy=nome"
+  //     );
+  //     const data = await response.json();
+  //     setRegioes(data);
+  //   };
+  //   fetchData();
+  // }, []);
+
   useEffect(() => {
-    fetch(
-      "https://servicodados.ibge.gov.br/api/v1/localidades/regioes?orderBy=nome"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setRegioes(data);
-      });
+    (async () => {
+      const response = await fetch(
+        "https://servicodados.ibge.gov.br/api/v1/localidades/regioes?orderBy=nome"
+      );
+      const data = await response.json();
+      setRegioes(data);
+    })();
   }, []);
 
-  useEffect(() => setDesabilitaBotao(botaoDesabilitado()),[formValores])
+
+  useEffect(() => setDesabilitaBotao(botaoDesabilitado()), [formValores]);
 
   return (
     <>
