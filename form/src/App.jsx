@@ -9,6 +9,7 @@ const valoresIniciaisDoFormulario = {
   estado: "",
   municipio: "",
 };
+
 function App() {
   const buscarMunicipiosFiltradosPorEstado = () => {
     return new Promise((resolve, reject) => {
@@ -32,7 +33,6 @@ function App() {
       )
         .then((response) => response.json())
         .then((data) => {
-          console.log(data);
           resolve(data);
         });
     });
@@ -46,8 +46,71 @@ function App() {
     return campos.length > camposPreenchidos.length;
   };
 
+  const verificaValidacao = () => {
+    const erroDosCampos = {
+      nomeCompleto: {
+        min: {
+          check: (value) => value.length >= 6,
+          message: "O nome está muito curto",
+        },
+        max: {
+          check: (value) => value.length <= 12,
+          message: "O nome está muito longo",
+        },
+      },
+      email: {
+        valido: {
+          check: (value) => value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i),
+          message: "Não parece um e-mail válido",
+        },
+      },
+      regiao: {
+        valido: {
+          check: (value) => value !== "",
+          message: "Campo obrigatório.",
+        },
+      },
+      estado: {
+        valido: {
+          check: (value) => value !== "",
+          message: "Campo obrigatório.",
+        },
+      },
+      municipio: {
+        valido: {
+          check: (value) => value !== "",
+          message: "Campo obrigatório.",
+        },
+      },
+    };
+    const out = {};
+    const campos = Object.keys(erroDosCampos);
+    campos.forEach((campo) => {
+      const validacoes = Object.keys(erroDosCampos[campo]);
+      for (let i = 0; i < validacoes.length; i++) {
+        const naoValido = !erroDosCampos[campo][validacoes[i]].check(
+          formValores[campo]
+        );
+        if (naoValido) {
+          out[campo] = erroDosCampos[campo][validacoes[i]].message;
+          break;
+        }
+      }
+    });
+    out.submitDisabled = Object.keys(out).length > 0;
+    return out;
+  };
+
   const [formValores, setFormValores] = useState(valoresIniciaisDoFormulario);
-  const [desabilitaBotao, setDesabilitaBotao] = useState(botaoDesabilitado());
+  //const [desabilitaBotao, setDesabilitaBotao] = useState(botaoDesabilitado());
+  const [camposMexidos, setCamposMexidos] = useState({
+    nomeCompleto: false,
+    email: false,
+    regiao: false,
+    estado: false,
+    municipio: false,
+  });
+  const [validacaoForm, setvalidacaoForm] = useState(verificaValidacao());
   const [regioes, setRegioes] = useState([]);
   const [estadoFiltrado, setEstadoFiltrado] = useState([]);
   const [municipioFiltrado, setMunicipioFiltrado] = useState([]);
@@ -67,6 +130,7 @@ function App() {
   const escutandoValorDosCampos = (event) => {
     const { name, value } = event.target;
     setFormValores({ ...formValores, [name]: value });
+    setCamposMexidos({ ...camposMexidos, [name]: true })
   };
 
   useEffect(() => {
@@ -103,8 +167,19 @@ function App() {
     })();
   }, []);
 
+  useEffect(() => {
+    //setDesabilitaBotao(botaoDesabilitado());
+    setvalidacaoForm(verificaValidacao());
+  }, [formValores]);
 
-  useEffect(() => setDesabilitaBotao(botaoDesabilitado()), [formValores]);
+  function CampoErro({campo}) {
+    const hasError = validacaoForm.hasOwnProperty(campo);
+    const naoFoiMexido = !camposMexidos[campo];
+    if (!hasError || naoFoiMexido) return "";
+    return (
+      <span className="has-text-danger is-size-7 p-2">{validacaoForm[campo]}</span>
+    );
+  }
 
   return (
     <>
@@ -128,6 +203,7 @@ function App() {
                   onChange={escutandoValorDosCampos}
                   value={formValores.nomeCompleto}
                 />
+                <CampoErro campo="nomeCompleto"/>
               </div>
               <div className="column">
                 <label>E-mail</label>
@@ -139,6 +215,7 @@ function App() {
                   onChange={escutandoValorDosCampos}
                   value={formValores.email}
                 />
+                 <CampoErro campo="email"/>
               </div>
             </div>
             <div className="columns">
@@ -156,6 +233,7 @@ function App() {
                       </option>
                     ))}
                   </select>
+                  <CampoErro campo="regiao"/>
                 </div>
               </div>
               <div className="column">
@@ -175,6 +253,7 @@ function App() {
                       </option>
                     ))}
                   </select>
+                  <CampoErro campo="estado"/>
                 </div>
               </div>
 
@@ -195,15 +274,16 @@ function App() {
                       </option>
                     ))}
                   </select>
+                  <CampoErro campo="municipio"/>
                 </div>
               </div>
             </div>
-            <div className="columns">
+            <div className="columns mt-6">
               <div className="column">
                 <button
                   className="button"
                   type="submit"
-                  disabled={desabilitaBotao}
+                  disabled={validacaoForm.submitDisabled}
                 >
                   Enviar
                 </button>
