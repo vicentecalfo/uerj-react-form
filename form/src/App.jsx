@@ -54,22 +54,25 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      const { regiao, estado } = formValores;
-      if (regiao !== "") {
-        setEstadoFiltrado(
-          await ibgeService.estadosPorRegioes(formValores.regiao)
-        );
-        setMunicipioFiltrado([]);
-      } else {
-        setEstadoFiltrado([]);
-      }
-      if (estado !== "")
-        setMunicipioFiltrado(
-          await ibgeService.municipiosPorEstados(formValores.estado)
-        );
-      setvalidacaoForm(validationFormFields(config, formValores));
+      setEstadoFiltrado(
+        await ibgeService.estadosPorRegioes(formValores.regiao)
+      );
+      setMunicipioFiltrado([]);
     })();
-  }, [formValores, ibgeService]);
+  }, [formValores.regiao, ibgeService]);
+
+  useEffect(() => {
+    (async () => {
+      setMunicipioFiltrado(
+        await ibgeService.municipiosPorEstados(formValores.estado)
+      );
+    })();
+  }, [formValores.estado, ibgeService]);
+
+  useEffect(
+    () => setvalidacaoForm(validationFormFields(config, formValores)),
+    [formValores]
+  );
 
   return (
     <>
